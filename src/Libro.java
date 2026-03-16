@@ -1,49 +1,35 @@
 public class Libro {
-    //Atributos de tipo privado como id
 
-    private int id;
+    private int    id;
     private String titulo;
     private String autor;
-    private int anioPublicacion;
     private String genero;
-    private Boolean disponible;
-    private String usuarioPrestamo;
-    //Constructor para inicializar los atributos
-    public Libro(int id, String titulo, String autor, int anioPublicacion, String genero, Boolean disponible) {
-        this.id = id;
-        this.titulo = titulo;
-        this.autor = autor;
-        this.anioPublicacion = anioPublicacion;
-        this.genero = genero;
-        this.disponible = disponible;
-        this.usuarioPrestamo = "Ninguno";
-    }
-    //Metodos para actualizar el estado de disponibilidad del libro
-    public void actualizarDisponibilidad(boolean disponible) {
-        this.disponible = disponible;
+    private boolean disponibilidad;
+
+    public Libro(int id, String titulo, String autor, String genero) {
+        this.id            = id;
+        this.titulo        = titulo;
+        this.autor         = autor;
+        this.genero        = genero;
+        this.disponibilidad = true;   // disponible al crearse
     }
 
-    public void asignarUsuarioPrestamo(String usuarioPrestamo) {
-        this.usuarioPrestamo = usuarioPrestamo;
+    public int     getId()             { return id; }
+    public String  getTitulo()         { return titulo; }
+    public String  getAutor()          { return autor; }
+    public String  getGenero()         { return genero; }
+    public boolean isDisponible()      { return disponibilidad; }
+
+    /** Cambia el estado de disponibilidad del libro. */
+    public void actualizarDisponibilidad(boolean estado) {
+        this.disponibilidad = estado;
     }
 
-    public boolean isDisponible() {
-        return disponible;
-    }
-    //Metodo para mostrar la informacion del libro
+    /** Muestra los datos del libro por consola. */
     public void mostrarInformacion() {
-        System.out.println("Id: " + id);
-        System.out.println("Titulo: " + titulo);
-        System.out.println("Autor: " + autor);
-        System.out.println("Año de publicacion: " + anioPublicacion);
-        System.out.println("Genero: " + genero);
-
-        if (disponible) {
-            System.out.println("Disponibilidad: Disponible");
-            System.out.println("Prestado a: Ninguno");
-        } else {
-            System.out.println("Disponibilidad: No disponible");
-            System.out.println("Prestado a: " + usuarioPrestamo);
-        }
+        System.out.println("[Libro #" + id + "] " + titulo
+                + " | Autor: " + autor
+                + " | Género: " + genero
+                + " | Disponible: " + (disponibilidad ? "Sí" : "No"));
     }
 }

@@ -1,30 +1,62 @@
 public class Main {
+
     public static void main(String[] args) {
-        // Paso 1: crear un libro disponible para préstamo
-        Libro libro1 = new Libro(
-                1,
-                "Cien años de soledad",
-                "Gabriel Garcia Marquez",
-                1967,
-                "Novela",
-                true );
 
-        // Paso 2: crear un usuario que va a pedir el libro
-        Usuario usuario1 = new Usuario(101, "Ana", "Lopez", 123456789);
+        // Crear la biblioteca
+        Biblioteca bib = new Biblioteca(
+                "Biblioteca Central", "Calle 10 #5-20, Sitionuevo");
 
-        // Paso 3: mostrar cómo está el libro antes del préstamo
-        System.out.println("Estado inicial del libro:");
-        libro1.mostrarInformacion();
+        // Registrar libros
+        Libro l1 = new Libro(1, "Cien Años de Soledad",
+                "Gabriel García Márquez", "Novela");
+        Libro l2 = new Libro(2, "El Amor en los Tiempos del Cólera",
+                "Gabriel García Márquez", "Novela");
+        Libro l3 = new Libro(3, "La Vorágine",
+                "José Eustasio Rivera",  "Novela");
+        Libro l4 = new Libro(4, "Clean Code",
+                "Robert C. Martin",      "Tecnología");
+        bib.agregarLibro(l1);
+        bib.agregarLibro(l2);
+        bib.agregarLibro(l3);
+        bib.agregarLibro(l4);
 
-        // Paso 4: llamar al método prestarLibro
-        // Aquí el usuario intenta prestar el libro.
-        // Si el libro está disponible, cambia a no disponible.
-        System.out.println("\nProbando el método prestarLibro...");
-        usuario1.prestarLibro(libro1);
+        // Registrar usuarios
+        Usuario u1 = new Usuario(101, "Ana",    "Pérez",  1001);
+        Usuario u2 = new Usuario(102, "Carlos", "López",  1002);
+        bib.registrarUsuario(u1);
+        bib.registrarUsuario(u2);
 
-        // Paso 5: mostrar cómo quedó el libro después del préstamo
-        // Aquí también se verá qué usuario tiene el libro prestado.
-        System.out.println("\nEstado final del libro y usuario que lo tiene prestado:");
-        libro1.mostrarInformacion();
+        // Préstamos
+        System.out.println("=== Préstamos ===");
+        bib.prestarLibro(u1, l1);   // Ana pide l1 → OK
+        bib.prestarLibro(u1, l2);   // Ana pide l2 → OK
+        bib.prestarLibro(u1, l3);   // Ana pide l3 → OK (llega a 3)
+        bib.prestarLibro(u1, l4);   // Ana pide l4 → rechazado (límite)
+        bib.prestarLibro(u2, l1);   // Carlos pide l1 → no disponible
+
+        // Búsqueda
+        System.out.println("\n=== Búsqueda por autor ===");
+        bib.buscarLibrosPorAutor("García")
+                .forEach(Libro::mostrarInformacion);
+
+        // Devolución
+        System.out.println("\n=== Devolución ===");
+        bib.devolverLibro(u1, l1);   // Ana devuelve l1
+        bib.prestarLibro(u2, l1);    // Carlos pide l1 → ahora OK
+
+        // Estado final
+        System.out.println("\n=== Libros disponibles ===");
+        bib.listarLibrosDisponibles()
+                .forEach(Libro::mostrarInformacion);
+
+        System.out.println("\n=== Préstamos activos ===");
+        bib.listarLibrosPrestados().forEach(p -> {
+            System.out.println(p.getIdPrestamo()
+                    + " | " + p.getLibro().getTitulo()
+                    + " | " + p.getUsuario().getNombre()
+                    + " | Vence: " + p.getFechaLimite()
+                    + " | Días restantes: " + p.diasRestantes());
+        });
     }
 }
+ 
