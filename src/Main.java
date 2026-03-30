@@ -1,62 +1,80 @@
 public class Main {
-
     public static void main(String[] args) {
 
-        // Crear la biblioteca
+        // 1. Biblioteca (igual que EA2)
         Biblioteca bib = new Biblioteca(
                 "Biblioteca Central", "Calle 10 #5-20, Sitionuevo");
 
-        // Registrar libros
-        Libro l1 = new Libro(1, "Cien Años de Soledad",
+        // 2. Materiales: Libro (heredado) + Revista (nueva)
+        //    Referencia de tipo Material → polimorfismo
+        Material l1 = new Libro(1, "Cien Años de Soledad",
                 "Gabriel García Márquez", "Novela");
-        Libro l2 = new Libro(2, "El Amor en los Tiempos del Cólera",
+        Material l2 = new Libro(2, "El Amor en los Tiempos del Cólera",
                 "Gabriel García Márquez", "Novela");
-        Libro l3 = new Libro(3, "La Vorágine",
-                "José Eustasio Rivera",  "Novela");
-        Libro l4 = new Libro(4, "Clean Code",
-                "Robert C. Martin",      "Tecnología");
-        bib.agregarLibro(l1);
-        bib.agregarLibro(l2);
-        bib.agregarLibro(l3);
-        bib.agregarLibro(l4);
+        Material l3 = new Libro(3, "La Vorágine",
+                "José Eustasio Rivera", "Novela");
+        Material l4 = new Libro(4, "Clean Code",
+                "Robert C. Martin", "Tecnología");
+        Material r1 = new Revista(5, "Semana", "Publicaciones Semana",
+                430, "Semanal");
+        bib.agregarMaterial(l1); bib.agregarMaterial(l2);
+        bib.agregarMaterial(l3); bib.agregarMaterial(l4);
+        bib.agregarMaterial(r1);
 
-        // Registrar usuarios
-        Usuario u1 = new Usuario(101, "Ana",    "Pérez",  1001);
-        Usuario u2 = new Usuario(102, "Carlos", "López",  1002);
-        bib.registrarUsuario(u1);
-        bib.registrarUsuario(u2);
+        // 3. Personas: Usuario (heredado) + Bibliotecario (nuevo)
+        //    Referencia de tipo Persona → polimorfismo
+        Persona u1 = new Usuario(101, "Ana",    "Pérez",  1001);
+        Persona u2 = new Usuario(102, "Carlos", "López",  1002);
+        Persona b1 = new Bibliotecario(201, "Miguel", "Abache",
+                "EMP-001", "Mañana");
+        bib.registrarPersona(u1);
+        bib.registrarPersona(u2);
+        bib.registrarPersona(b1);
 
-        // Préstamos
-        System.out.println("=== Préstamos ===");
-        bib.prestarLibro(u1, l1);   // Ana pide l1 → OK
-        bib.prestarLibro(u1, l2);   // Ana pide l2 → OK
-        bib.prestarLibro(u1, l3);   // Ana pide l3 → OK (llega a 3)
-        bib.prestarLibro(u1, l4);   // Ana pide l4 → rechazado (límite)
-        bib.prestarLibro(u2, l1);   // Carlos pide l1 → no disponible
+        // 4. Catálogo — polimorfismo en acción:
+        //    mostrarInformacion() se resuelve en tiempo de ejecución
+        bib.listarCatalogo();
 
-        // Búsqueda
-        System.out.println("\n=== Búsqueda por autor ===");
-        bib.buscarLibrosPorAutor("García")
-                .forEach(Libro::mostrarInformacion);
+        // 5. Personas — getRol() polimórfico
+        bib.listarPersonas();
 
-        // Devolución
+        // 6. Préstamos (misma lógica EA2, ahora con Material)
+        System.out.println("\n=== Préstamos ===");
+        Usuario usr1 = bib.buscarUsuario("101");
+        Usuario usr2 = bib.buscarUsuario("102");
+        bib.prestarMaterial(usr1, l1);  // Ana pide l1 → OK
+        bib.prestarMaterial(usr1, l2);  // Ana pide l2 → OK
+        bib.prestarMaterial(usr1, l3);  // Ana pide l3 → OK
+        bib.prestarMaterial(usr1, l4);  // límite → rechazado
+        bib.prestarMaterial(usr1, r1);  // Ana pide revista → rechazado
+        bib.prestarMaterial(usr2, l1);  // Carlos pide l1 → no disponible
+
+        // 7. Búsqueda con OVERLOADING
+        System.out.println("\n=== Búsqueda por autor (overloading 1 param) ===");
+        bib.buscarMaterialPorAutor("García")
+                .forEach(Material::mostrarInformacion);
+
+        System.out.println("\n=== Búsqueda por título+autor (overloading 2 param) ===");
+        bib.buscarMaterialPorTitulo("Cien", "García")
+                .forEach(Material::mostrarInformacion);
+
+        // 8. Devolución y nuevo préstamo
         System.out.println("\n=== Devolución ===");
-        bib.devolverLibro(u1, l1);   // Ana devuelve l1
-        bib.prestarLibro(u2, l1);    // Carlos pide l1 → ahora OK
+        bib.devolverMaterial(usr1, l1);
+        bib.prestarMaterial(usr2, l1);   // Carlos pide l1 → OK
 
-        // Estado final
-        System.out.println("\n=== Libros disponibles ===");
-        bib.listarLibrosDisponibles()
-                .forEach(Libro::mostrarInformacion);
+        // 9. Estado final
+        System.out.println("\n=== Materiales disponibles ===");
+        bib.listarDisponibles().forEach(Material::mostrarInformacion);
 
         System.out.println("\n=== Préstamos activos ===");
-        bib.listarLibrosPrestados().forEach(p -> {
+        bib.listarPrestamosActivos().forEach(p -> {
             System.out.println(p.getIdPrestamo()
-                    + " | " + p.getLibro().getTitulo()
-                    + " | " + p.getUsuario().getNombre()
-                    + " | Vence: " + p.getFechaLimite()
-                    + " | Días restantes: " + p.diasRestantes());
+                    + " | " + p.getMaterial().getTitulo()
+                    + " | Tipo: " + p.getMaterial().getTipoMaterial()
+                    + " | Usuario: " + p.getUsuario().getNombreCompleto()
+                    + " | Vence: "  + p.getFechaLimite()
+                    + " | Días rest: " + p.diasRestantes());
         });
     }
 }
- 

@@ -4,88 +4,90 @@ import java.util.stream.Collectors;
 
 public class Biblioteca {
 
-    private String       nombre;
-    private String       direccion;
-    private List<Libro>    libros;
-    private List<Usuario>  usuarios;
+    private String         nombre;
+    private String         direccion;
+    private List<Material> materiales;        // EA3: antes List<Libro>
+    private List<Persona>  personas;           // EA3: antes List<Usuario>
     private List<Prestamo> prestamos;
-    private int            contadorPrestamos;  // local de clase
+    private int            contadorPrestamos;
 
     public Biblioteca(String nombre, String direccion) {
-        this.nombre    = nombre;
-        this.direccion = direccion;
-        this.libros    = new ArrayList<>();
-        this.usuarios  = new ArrayList<>();
-        this.prestamos = new ArrayList<>();
+        this.nombre            = nombre;
+        this.direccion         = direccion;
+        this.materiales        = new ArrayList<>();
+        this.personas          = new ArrayList<>();
+        this.prestamos         = new ArrayList<>();
         this.contadorPrestamos = 0;
     }
 
-    // ── Gestión de libros ─────────────────────────────────────
-    public void agregarLibro(Libro libro) {
-        libros.add(libro);
-    }
+    // Polimorfismo: acepta cualquier subclase de Material
+    public void agregarMaterial(Material m) { materiales.add(m); }
 
-    public List<Libro> buscarLibrosPorTitulo(String titulo) {
-        // Variable local: filtro
-        String filtro = titulo.toLowerCase();
-        return libros.stream()
-                .filter(l -> l.getTitulo().toLowerCase().contains(filtro))
+    // Polimorfismo: acepta cualquier subclase de Persona
+    public void registrarPersona(Persona p) { personas.add(p); }
+
+    // OVERLOADING — buscar solo por título
+    public List<Material> buscarMaterialPorTitulo(String titulo) {
+        String f = titulo.toLowerCase();
+        return materiales.stream()
+                .filter(m -> m.getTitulo().toLowerCase().contains(f))
+                .collect(Collectors.toList());
+    }
+    // OVERLOADING — buscar por título Y autor
+    public List<Material> buscarMaterialPorTitulo(String titulo, String autor) {
+        String ft = titulo.toLowerCase();
+        String fa = autor.toLowerCase();
+        return materiales.stream()
+                .filter(m -> m.getTitulo().toLowerCase().contains(ft)
+                        && m.getAutor().toLowerCase().contains(fa))
                 .collect(Collectors.toList());
     }
 
-    public List<Libro> buscarLibrosPorAutor(String autor) {
-        String filtro = autor.toLowerCase();
-        return libros.stream()
-                .filter(l -> l.getAutor().toLowerCase().contains(filtro))
+    // Idéntico al EA2, pero opera sobre Material
+    public List<Material> buscarMaterialPorAutor(String autor) {
+        String f = autor.toLowerCase();
+        return materiales.stream()
+                .filter(m -> m.getAutor().toLowerCase().contains(f))
                 .collect(Collectors.toList());
     }
 
-    public List<Libro> listarLibrosDisponibles() {
-        return libros.stream()
-                .filter(Libro::isDisponible)
+    public List<Material> listarDisponibles() {
+        return materiales.stream()
+                .filter(Material::isDisponible)
                 .collect(Collectors.toList());
     }
 
-    public void registrarUsuario(Usuario usuario) {
-        usuarios.add(usuario);
-    }
-
+    // buscarUsuario sigue igual, filtra por tipo
     public Usuario buscarUsuario(String idUsuario) {
         int id = Integer.parseInt(idUsuario);
-        return usuarios.stream()
-                .filter(u -> u.getIdUsuario() == id)
+        return personas.stream()
+                .filter(p -> p instanceof Usuario
+                        && p.getIdPersona() == id)
+                .map(p -> (Usuario) p)
                 .findFirst().orElse(null);
     }
 
-    /**
-     * Presta un libro a un usuario.
-     * Variables locales: prestamo (objeto creado en el método).
-     * Retorna true si la operación fue exitosa.
-     */
-    public boolean prestarLibro(Usuario usuario, Libro libro) {
-        if (!libro.isDisponible()) {
-            System.out.println("Libro no disponible."); return false;
+    // prestarMaterial — lógica idéntica al EA2, opera sobre Material
+    public boolean prestarMaterial(Usuario usuario, Material material) {
+        if (!material.isDisponible()) {
+            System.out.println("Material no disponible."); return false;
         }
         if (!usuario.puedePedir()) {
             System.out.println("Límite de préstamos alcanzado."); return false;
         }
-        // Variable local: nuevo préstamo
-        String idP = "P" + (++contadorPrestamos);
-        Prestamo prestamo = new Prestamo(idP, libro, usuario, 15);
-        libro.actualizarDisponibilidad(false);
+        // Variable local: prestamo (como en EA2)
+        String   idP     = "P" + (++contadorPrestamos);
+        Prestamo prestamo = new Prestamo(idP, material, usuario, 15);
+        material.actualizarDisponibilidad(false);
         usuario.tomarPrestado(prestamo);
         prestamos.add(prestamo);
         System.out.println("Préstamo " + idP + " registrado.");
         return true;
     }
 
-    /**
-     * Registra la devolución de un libro.
-     * Variables locales: prestamo (encontrado en la lista).
-     */
-    public boolean devolverLibro(Usuario usuario, Libro libro) {
+    public boolean devolverMaterial(Usuario usuario, Material material) {
         Prestamo prestamo = prestamos.stream()
-                .filter(p -> p.getLibro().equals(libro)
+                .filter(p -> p.getMaterial().equals(material)
                         && p.getUsuario().equals(usuario)
                         && p.getFechaDevolucion() == null)
                 .findFirst().orElse(null);
@@ -93,24 +95,28 @@ public class Biblioteca {
             System.out.println("Préstamo no encontrado."); return false;
         }
         prestamo.registrarDevolucion();
-        libro.actualizarDisponibilidad(true);
+        material.actualizarDisponibilidad(true);
         usuario.devolverLibro(prestamo);
         System.out.println("Devolución registrada.");
         return true;
     }
 
-    public List<Prestamo> listarLibrosPrestados() {
+    public List<Prestamo> listarPrestamosActivos() {
         return prestamos.stream()
                 .filter(p -> p.getFechaDevolucion() == null)
                 .collect(Collectors.toList());
     }
 
-    public List<Libro> librosPrestadosAUsuario(String idUsuario) {
-        Usuario u = buscarUsuario(idUsuario);
-        if (u == null) return new ArrayList<>();
-        return u.getLibrosPrestados().stream()
-                .map(Prestamo::getLibro)
-                .collect(Collectors.toList());
+    // Polimorfismo: mostrarInformacion() según el tipo real
+    public void listarCatalogo() {
+        System.out.println("=== Catálogo: " + nombre + " ===");
+        materiales.forEach(Material::mostrarInformacion);
+    }
+    public void listarPersonas() {
+        System.out.println("=== Personas registradas ===");
+        personas.forEach(p -> {
+            p.mostrarInformacion();
+            System.out.println("  Rol: " + p.getRol());
+        });
     }
 }
-

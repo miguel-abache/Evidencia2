@@ -1,52 +1,50 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Usuario {
+public class Usuario extends Persona {
 
-    private static final int MAX_PRESTAMOS = 3;
+    private static final int MAX_PRESTAMOS = 3;  // variable global estática
 
-    private int    idUsuario;
-    private String nombre;
-    private String apellido;
-    private int    numeroIdentificacion;
-    private List<Prestamo> librosPrestados;   // lista interna
+    // Atributos propios de Usuario
+    private int           numeroIdentificacion;
+    private List<Prestamo> librosPrestados;
 
     public Usuario(int idUsuario, String nombre,
                    String apellido, int numeroIdentificacion) {
-        this.idUsuario            = idUsuario;
-        this.nombre               = nombre;
-        this.apellido             = apellido;
+        super(idUsuario, nombre, apellido);  // delega a Persona
         this.numeroIdentificacion = numeroIdentificacion;
         this.librosPrestados      = new ArrayList<>();
     }
 
-    public int    getIdUsuario()            { return idUsuario; }
-    public String getNombre()               { return nombre; }
-    public String getApellido()             { return apellido; }
-    public int    getNumeroIdentificacion() { return numeroIdentificacion; }
+    // Getter propio
+    public int getNumeroIdentificacion() { return numeroIdentificacion; }
     public List<Prestamo> getLibrosPrestados() {
-        return new ArrayList<>(librosPrestados); // copia defensiva
+        return new ArrayList<>(librosPrestados);   // copia defensiva
     }
 
-    /** Registra un préstamo en el historial del usuario. */
     public boolean tomarPrestado(Prestamo prestamo) {
         if (!puedePedir()) return false;
-        librosPrestados.add(prestamo);
-        return true;
+        return librosPrestados.add(prestamo);
     }
-
-    /** Elimina el préstamo del historial al devolver. */
     public boolean devolverLibro(Prestamo prestamo) {
         return librosPrestados.remove(prestamo);
     }
-
-    /** Verifica si puede pedir más libros. */
     public boolean puedePedir() {
         return librosPrestados.size() < MAX_PRESTAMOS;
     }
-
-    /** Retorna cuántos libros tiene actualmente prestados. */
     public int cantidadLibrosPrestados() {
         return librosPrestados.size();
+    }
+
+    // @Override — métodos abstractos de Persona
+    @Override
+    public String getRol() { return "Usuario"; }
+
+    @Override
+    public void mostrarInformacion() {
+        System.out.println("[Usuario #" + getIdPersona() + "] "
+                + getNombreCompleto()
+                + " | CC: "       + numeroIdentificacion
+                + " | Prestamos: " + cantidadLibrosPrestados());
     }
 }
